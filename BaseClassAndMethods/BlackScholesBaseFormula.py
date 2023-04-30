@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from math import log, sqrt, exp
-from scipy.stats.norm import cdf
+from scipy.stats import norm
 
 class BlackScholeNonDividend(ABC):
     """The most basic Black-Scholes Formula that values a European Option on a stock that does not pay dividends before the option's expiry date
@@ -25,7 +25,7 @@ class BlackScholeNonDividend(ABC):
         assert isinstance(r, (float, int)), "Risk Free Rate - r shld be a float" # rfr can be negative
         assert isinstance(T, (float, int)) and (T>=0), "Time to maturity - T shld be a non negative float"
         assert isinstance(sigma, (float, int)) and (sigma>=0), "Historical Vol - sigma shld be a non negative float"
-        assert isinstance(call_put, str) and (sigma in ['c', 'p']), r"call_put should be either 'c' or 'p'"
+        assert isinstance(call_put, str) and (call_put in ['c', 'p']), r"call_put should be either 'c' or 'p'"
 
         self.S = S
         self.X = X
@@ -45,9 +45,9 @@ class BlackScholeNonDividend(ABC):
     @property
     def price(self):
         if self.call_put == 'c':
-            return self.S*cdf(self.d1) - self.X*(exp**(-self.r*self.T))*cdf(self.d2)
+            return self.S*norm.cdf(self.d1) - self.X*(exp(-self.r*self.T))*norm.cdf(self.d2)
         else:
-            return self.X*(exp**(-self.r*self.T))*cdf(-self.d2) - self.S*cdf(-self.d1)
+            return self.X*(exp(-self.r*self.T))*norm.cdf(-self.d2) - self.S*norm.cdf(-self.d1)
     
 
 
