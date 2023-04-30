@@ -120,7 +120,7 @@ class Black76ModelOptionsOnFutures(BlackScholeSNoDividend):
 
 
 class GeneralBlackScholesMertonFormula(ABC):##for checking?
-    """The most basic Black-Scholes(1973) Formula that values a European Option on a stock that does not pay dividends before the option's expiry date
+    """The General Black-Scholes-Merton Formula that can be used for different option pricing settings (see b in Args)
 
     Args:
         S: Spot Price of the Stock
