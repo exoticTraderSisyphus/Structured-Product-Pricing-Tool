@@ -157,6 +157,10 @@ class GeneralBlackScholesMertonFormula(ABC):##for checking?
         self.T = T
         self.sigma = sigma
         self.call_put = call_put
+
+    @property
+    def df(self): ##discount Factor
+        return exp((self.b-self.r)*self.T)
     
     @property
     def d1(self):
@@ -169,6 +173,42 @@ class GeneralBlackScholesMertonFormula(ABC):##for checking?
     @property
     def price(self):
         if self.call_put == 'c':
-            return self.S*exp((self.b-self.r)*self.T)*norm.cdf(self.d1) - self.X*(exp(-self.r*self.T))*norm.cdf(self.d2)
-        else:
-            return self.X*(exp(-self.r*self.T))*norm.cdf(-self.d2) - self.S*exp((self.b-self.r)*self.T)*norm.cdf(-self.d1)
+            return self.S*self.df*norm.cdf(self.d1) - self.X*(exp(-self.r*self.T))*norm.cdf(self.d2)
+        
+        return self.X*(exp(-self.r*self.T))*norm.cdf(-self.d2) - self.S*self.df*norm.cdf(-self.d1)
+        
+    @property
+    def delta(self):
+        if self.call_put == 'c':
+            return self.df*norm.cdf(self.d1)
+        
+        return self.df*(norm.cdf(self.d1)-1)
+    
+    @property
+    def gamma(self):
+        return (norm.pdf(self.d1) * self.df)/(self.S*self.sigma*sqrt(self.T))
+    
+    @property
+    def vega(self):
+        return self.S*self.df*norm.pdf(self.d1)*sqrt(self.T)
+    
+    @property
+    def vanna(self):
+        #d(Delta)/d(vol), or, d(Vega)/d(spot)
+        return (-self.df*self.d2/self.sigma)*norm.pdf(self.d1)
+    
+    @property
+    def theta(self):
+        #expected bleed / time decay
+        if self.call_put == 'c':
+            return -(self.S*self.df*norm.pdf(self.d1)*self.sigma/(2*sqrt(self.T))) - (self.b-self.r)*self.S*self.df*norm.cdf(self.d1) - self.r*self.X*exp(-self.r*self.T)*norm.cdf(self.d2)
+        return -(self.S*self.df*norm.pdf(self.d1)*self.sigma/(2*sqrt(self.T))) + (self.b-self.r)*self.S*self.df*norm.cdf(self.d1) + self.r*self.X*exp(-self.r*self.T)*norm.cdf(self.d2)
+
+    @property
+    def rho(self):
+        if self.b != 0 : #not futures option(???) == stocks(???) page 25
+            if self.call_put == 'c':
+                return self.T*self.X*exp(-self.r*self.T)*norm.cdf(self.d2)
+            return self.T*self.X*exp(-self.r*self.T)*norm.cdf(-self.d2)
+        else: # futures options
+            return -self.T*self.price
